@@ -10,9 +10,11 @@ import android.app.Activity;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.text.Layout;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 public class RedrawTask extends TimerTask{
 	private float[] speed = {0.0f, 0.0f};
@@ -79,12 +81,12 @@ public class RedrawTask extends TimerTask{
 	public void pause(){
 		RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
 		paused = true;
-		//firstSpeedRead = false;
+		firstSpeedRead = false;
 	}
 	
 	public void updateSpeed(float[] speed){
 		// Calibrate the zero-point from the initial positioning of the phone
-		if(!firstSpeedRead){
+		if(!firstSpeedRead && !paused){
 			speedAdjust = new float[2];
 			speedAdjust[0] = speed[0];
 			speedAdjust[1] = speed[1];
@@ -138,8 +140,8 @@ public class RedrawTask extends TimerTask{
 				vibrator.vibrate(25);
 				
 				paused = true;
+				RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
 				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).quitApplication(); }});
-				//RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
 				//RedrawHandler.post(new Runnable(){ public void run(){ parent.changeActivity(); }});
 			}
 		}

@@ -29,6 +29,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,6 +69,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 
 		// Send the context and the view the ball is to be rendered on to the rendertask.
 		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place);
+		//mainView = (android.widget.FrameLayout) findViewById(R.id.stuff);
 		redrawTask = new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay());
 		redrawTask.changeContext(this, mainView);
 
@@ -289,6 +291,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	
 	public void onResume() {
+		makeToast("Resuming");
 		redrawTask.changeContext(this, mainView);
 		if (!running) {
 			running = true;
@@ -296,11 +299,11 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		super.onResume();
 	}
 	public void onPause() {
+		makeToast("Pausing");
 		redrawTask.pause();
 		super.onPause();
 	}
 	public void onDestroy(){
-		redrawTask.pause();
 		if (running) {
 			running = false;
 		}
@@ -332,8 +335,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	
 	public void quitApplication(){
-		redrawTask.pause();
-		redrawTask.firstSpeedRead = false;
+		//redrawTask.pause();
 		Intent startMain = new Intent(Intent.ACTION_MAIN);
 		startMain.addCategory(Intent.CATEGORY_HOME);
 		startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 public class PlaylistActivity extends Activity implements CustomActivity{
 	private FrameLayout mainView;
