@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Copy element &apos;BallView.java&apos; to &apos;Migration/src/com.example.migration&apos;&#x0A;- Original project: &apos;canvas_test&apos;&#x0A;- Destination element: &apos;Migration/src/com.example.migration&apos;&#x0A;- Original element: &apos;com.example.canvas_test.BallView.java&apos;" description="Copy compilation unit" destination="=Migration/src&lt;com.example.migration" element1="/src&lt;com.example.canvas_test{BallView.java" files="0" flags="589830" folders="0" id="org.eclipse.jdt.ui.copy" policy="org.eclipse.jdt.ui.copyResources" stamp="1386115371895" units="1" version="1.0"/>
+</session>

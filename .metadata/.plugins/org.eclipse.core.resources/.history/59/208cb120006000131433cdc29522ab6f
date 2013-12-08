@@ -1,0 +1,83 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/painting_place"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#383838"
+    tools:context=".PlaybackActivity" >
+
+    <!--
+         The primary full-screen view. This can be replaced with whatever view
+         is needed to present your content, e.g. VideoView, SurfaceView,
+         TextureView, etc.
+    -->
+    <FrameLayout 
+        android:id="@+id/stuff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginTop="50sp">
+
+        <Button
+            android:id="@+id/bar1"
+            android:layout_width="7dp"
+            android:layout_height="200sp"
+            android:background="#FFFFFF"
+            android:layout_gravity="left" />
+        
+        <ViewFlipper 
+	        android:id="@+id/flipper_of_views"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="center">
+	        
+	        <ImageView
+	            android:contentDescription="@string/description"
+	            android:id="@+id/image_view_1"
+	            android:layout_width="200sp"
+	            android:layout_height="200sp"
+	            android:layout_gravity="center"
+	            android:scaleType="centerCrop" />
+	        
+	        <ImageView
+	            android:contentDescription="@string/description"
+	            android:id="@+id/image_view_2"
+	            android:layout_width="200sp"
+	            android:layout_height="200sp"
+	            android:layout_gravity="center"
+	            android:scaleType="centerCrop" />
+   		</ViewFlipper>
+        
+        <Button
+            android:id="@+id/bar2"
+            android:layout_width="7dp"
+            android:layout_height="200sp"
+            android:background="#FFFFFF"
+            android:layout_gravity="right" />
+        
+    </FrameLayout>
+    
+    
+    <SeekBar
+        android:id="@+id/seekbartimeline"
+        android:layout_width="270dp"
+        android:layout_height="wrap_content" 
+        android:layout_gravity="center_horizontal"
+        android:paddingTop="100dp"
+        android:visibility="visible"/>
+    
+    
+    <!--
+    <TextView
+        android:id="@+id/test_output"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:keepScreenOn="true"
+        android:text="@string/playback"
+        android:textColor="#ff0000"
+        android:textSize="20sp"
+        android:textStyle="bold" />
+     -->
+
+</FrameLayout>

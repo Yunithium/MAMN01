@@ -1,0 +1,73 @@
+package com.example.migration;
+
+import java.util.Timer;
+
+import com.example.migration.util.SystemUiHider;
+
+import android.annotation.TargetApi;
+import android.app.Activity;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.MenuItem;
+import android.view.Window;
+import android.widget.FrameLayout;
+import android.support.v4.app.NavUtils;
+
+public class PlaybackActivity extends Activity {
+	private FrameLayout mainView;
+	private BallView ballView;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.activity_playback);
+		setupActionBar();
+		
+		// Create ballView and add it to the main view
+		ballView = new BallView(this, 200, 200, 30);
+		ballView.setKeepScreenOn(true);
+		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place);
+		mainView.addView(ballView);
+		
+		timer = new Timer();
+		refreshTime = 10;
+		redrawTask = new RedrawTask(this, ballView, refreshTime, getWindowManager().getDefaultDisplay());
+	}
+	
+	@TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	private void setupActionBar() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+			// Show the Up button in the action bar.
+			getActionBar().setDisplayHomeAsUpEnabled(true);
+		}
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case android.R.id.home:
+			// This ID represents the Home or Up button. In the case of this
+			// activity, the Up button is shown. Use NavUtils to allow users
+			// to navigate up one level in the application structure. For
+			// more details, see the Navigation pattern on Android Design:
+			//
+			// http://developer.android.com/design/patterns/navigation.html#up-vs-back
+			//
+			// TODO: If Settings has multiple levels, Up should navigate up
+			// that hierarchy.
+			NavUtils.navigateUpFromSameTask(this);
+			return true;
+		}
+		return super.onOptionsItemSelected(item);
+	}
+	
+	public void startPlayback(){
+		finish();
+		overridePendingTransition(R.anim.push_right_in, R.anim.push_right_out);
+	}
+}

@@ -1,0 +1,13 @@
+import java.util.ArrayList;
+
+public class Test{
+	public static void main(String[] args){
+		ArrayList<String> src = new ArrayList<String>();
+		src.add("Yunus");
+		src.add("Emre");
+		
+		ArrayList<String> dest = new ArrayList<String>(src);
+		
+		src.get(1) = "Taskin";
+	}
+}

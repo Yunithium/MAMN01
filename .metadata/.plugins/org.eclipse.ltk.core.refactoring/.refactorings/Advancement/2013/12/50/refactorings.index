@@ -1,0 +1,6 @@
+1386470994250	Rename package 'com.example.migration'
+1386471006321	Rename package 'com.example.migration.util'
+1386510992793	Rename field 'temp'
+1386511052890	Rename field 'canReadTimeInfo'
+1386511250360	Rename method 'initialize'
+1386514209683	Rename method 'testToast'

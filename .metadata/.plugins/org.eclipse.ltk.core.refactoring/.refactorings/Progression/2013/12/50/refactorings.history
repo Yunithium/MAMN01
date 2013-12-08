@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">
+<refactoring comment="Rename field &apos;playlist&apos; in &apos;com.example.migration.RollingStone&apos; to &apos;trax&apos;&#x0A;- Original project: &apos;Progression&apos;&#x0A;- Original element: &apos;com.example.migration.RollingStone.playlist&apos;&#x0A;- Renamed element: &apos;com.example.migration.RollingStone.trax&apos;&#x0A;- Update references to refactored element&#x0A;- Update textual occurrences in comments and strings" delegate="false" deprecate="false" description="Rename field &apos;playlist&apos;" flags="589830" getter="false" id="org.eclipse.jdt.ui.rename.field" input="/src&lt;com.example.migration{RollingStone.java[RollingStone^playlist" name="trax" references="true" setter="false" stamp="1386468062322" textual="false" version="1.0"/>
+</session>
