@@ -28,27 +28,37 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int black_overlay=0x7f060000;
     }
     public static final class drawable {
-        public static final int ic_launcher=0x7f020000;
-        public static final int rolling_stones=0x7f020001;
-        public static final int stevie_ray_vaughan=0x7f020002;
-        public static final int taylor_swift=0x7f020003;
-        public static final int the_beatles=0x7f020004;
-        public static final int the_knife=0x7f020005;
+        public static final int arcadefire=0x7f020000;
+        public static final int bar_kays=0x7f020001;
+        public static final int daftpunk=0x7f020002;
+        public static final int fleetwoodmac=0x7f020003;
+        public static final int gorillaz=0x7f020004;
+        public static final int ic_launcher=0x7f020005;
+        public static final int justice=0x7f020006;
+        public static final int rolling_stones=0x7f020007;
+        public static final int stevie_ray_vaughan=0x7f020008;
+        public static final int taylor_swift=0x7f020009;
+        public static final int the_beatles=0x7f02000a;
+        public static final int the_knife=0x7f02000b;
+        public static final int thestrokes=0x7f02000c;
+        public static final int thetoughalliance=0x7f02000d;
     }
     public static final class id {
-        public static final int bar1=0x7f090003;
-        public static final int bar2=0x7f090007;
-        public static final int enterAnimation=0x7f09000b;
-        public static final int exitAnimation=0x7f09000c;
-        public static final int flipper_of_views=0x7f090004;
-        public static final int fullscreen_content=0x7f09000a;
-        public static final int image_view_1=0x7f090005;
-        public static final int image_view_2=0x7f090006;
+        public static final int bar1=0x7f090005;
+        public static final int bar2=0x7f090009;
+        public static final int enterAnimation=0x7f09000d;
+        public static final int exitAnimation=0x7f09000e;
+        public static final int flipper_of_views=0x7f090006;
+        public static final int fullscreen_content=0x7f09000c;
+        public static final int image_view_1=0x7f090007;
+        public static final int image_view_2=0x7f090008;
         public static final int painting_place=0x7f090000;
-        public static final int painting_place_playback=0x7f090009;
+        public static final int painting_place_playback=0x7f09000b;
+        public static final int scroll_view=0x7f090002;
         public static final int seekbartimeline=0x7f090001;
-        public static final int stuff=0x7f090002;
-        public static final int test_output=0x7f090008;
+        public static final int stuff=0x7f090004;
+        public static final int test_output=0x7f09000a;
+        public static final int track_info=0x7f090003;
     }
     public static final class layout {
         public static final int playback_activity=0x7f030000;

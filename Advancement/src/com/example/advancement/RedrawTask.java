@@ -25,7 +25,6 @@ public class RedrawTask extends TimerTask{
 	private short refreshTime;
 	private boolean paused = false;
 	private int activeActivity;
-	public boolean firstSpeedRead;
 	
 	public CustomActivity parent;
 	private FrameLayout mainView;
@@ -39,7 +38,6 @@ public class RedrawTask extends TimerTask{
 		super();
 		this.refreshTime = refreshTime;
 		this.currentTime = SystemClock.uptimeMillis();
-		this.firstSpeedRead = false;
 		
 		DisplayMetrics outMetrics = new DisplayMetrics();
 		display.getMetrics(outMetrics);
@@ -80,17 +78,16 @@ public class RedrawTask extends TimerTask{
 	
 	public void pause(){
 		RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
+		//ballView = null;
 		paused = true;
-		firstSpeedRead = false;
 	}
 	
-	public void updateSpeed(float[] speed){
+	public void updateSpeed(float[] speed, boolean updateZero){
 		// Calibrate the zero-point from the initial positioning of the phone
-		if(!firstSpeedRead && !paused){
+		if(updateZero){
 			speedAdjust = new float[2];
 			speedAdjust[0] = speed[0];
 			speedAdjust[1] = speed[1];
-			firstSpeedRead = true;
 			return;
 		}
 		
@@ -100,8 +97,19 @@ public class RedrawTask extends TimerTask{
 	}
 	
 	public void updatePos(float[] position){
+		if(paused){
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).makeToast("Using ballView when it's null"); }});
+		}
 		ballView.x = position[0];
 		ballView.y = position[1];
+	}
+	
+	public void resetPos(){
+		if(paused){
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).makeToast("Using ballView when it's null"); }});
+		}
+		ballView.x = displaySize[0]/2;
+		ballView.y = displaySize[1]/2;
 	}
 
 	public void run(){
@@ -128,7 +136,8 @@ public class RedrawTask extends TimerTask{
 		if(activeActivity == 0) animatePlaybackActivity();
 		else if(activeActivity == 1) animatePlaylistActivity();
 		
-		// REDRAW THE BALLVIEW
+		// REDRAW THE BALLVIEW and SCROLL A LITTLE
+		RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).scrollAlittle(); }});
 		RedrawHandler.post(new Runnable(){ public void run() {	ballView.invalidate(); }});
 	}
 	

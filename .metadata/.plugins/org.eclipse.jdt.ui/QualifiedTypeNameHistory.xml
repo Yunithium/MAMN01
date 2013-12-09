@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="android.content.Intent"/>
-<fullyQualifiedTypeName name="com.example.transition.R.layout"/>
-<fullyQualifiedTypeName name="com.example.transition.R"/>
-<fullyQualifiedTypeName name="android.widget.ViewFlipper"/>
 <fullyQualifiedTypeName name="com.example.transition.R.anim"/>
 <fullyQualifiedTypeName name="android.view.animation.Animation"/>
 <fullyQualifiedTypeName name="android.view.animation.AnimationUtils"/>
@@ -56,7 +52,12 @@
 <fullyQualifiedTypeName name="java.lang.System"/>
 <fullyQualifiedTypeName name="android.media.MediaPlayer.OnCompletionListener"/>
 <fullyQualifiedTypeName name="java.util.Map"/>
-<fullyQualifiedTypeName name="java.util.HashMap"/>
 <fullyQualifiedTypeName name="android.widget.LinearLayout"/>
 <fullyQualifiedTypeName name="android.text.Layout"/>
+<fullyQualifiedTypeName name="android.util.Pair"/>
+<fullyQualifiedTypeName name="java.util.HashMap"/>
+<fullyQualifiedTypeName name="com.example.advancement.R.raw"/>
+<fullyQualifiedTypeName name="com.example.advancement.R.drawable"/>
+<fullyQualifiedTypeName name="android.widget.ScrollView"/>
+<fullyQualifiedTypeName name="android.widget.HorizontalScrollView"/>
 </qualifiedTypeNameHistroy>

@@ -1,10 +1,12 @@
 package com.example.advancement;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.example.advancement.R;
 
 import android.app.Application;
+import android.util.Pair;
 
 public class RollingStone extends Application{
 	private static RollingStone instance;
@@ -12,6 +14,7 @@ public class RollingStone extends Application{
 	public int currentSong;
 	private ArrayList<String> playlist;
 	private RedrawTask redrawTask;
+	private HashMap<String, Integer> tracks;
 	
 	public static RollingStone getInstance(){
 		if(instance==null)
@@ -25,8 +28,17 @@ public class RollingStone extends Application{
 		trax[0] = R.raw.pling;
 		trax[1] = R.raw.plong;
 		currentSong = 0;
-		
-		// Temporary code
+		tracks = new HashMap<String, Integer>();
+		tracks.put("Taylor Swift - I Knew You Were Trouble.mp3", R.drawable.taylor_swift);
+		tracks.put("Stevie Ray Vaughan - Mary Had A Little Lamb.mp3", R.drawable.stevie_ray_vaughan);
+		tracks.put("Bar-Kays - Too Hot To Stop Part One.mp3", R.drawable.bar_kays);
+		tracks.put("The Tough Alliance - A New Chance.mp3", R.drawable.thetoughalliance);
+		tracks.put("The Strokes - Barely Legal.mp3", R.drawable.thestrokes);
+		tracks.put("Justice - D.A.N.C.E.mp3", R.drawable.justice);
+		tracks.put("Gorillaz - Stylo.mp3", R.drawable.gorillaz);
+		tracks.put("Fleetwood Mac - Everywhere.mp3", R.drawable.fleetwoodmac);
+		tracks.put("Arcade Fire - Afterlife.mp3", R.drawable.arcadefire);
+		tracks.put("Daft Punk - Get Lucky.mp3", R.drawable.daftpunk);
 		
 	}
 	
@@ -44,5 +56,9 @@ public class RollingStone extends Application{
 	
 	public RedrawTask getRedrawTask(){
 		return redrawTask;
+	}
+	
+	public int getTrackinfo(String songName){
+		return tracks.get(songName);
 	}
 }
