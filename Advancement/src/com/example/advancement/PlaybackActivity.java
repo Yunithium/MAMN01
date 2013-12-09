@@ -46,6 +46,8 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	private boolean running = false;
 	private boolean asleep;
 	private boolean awoken;
+	private int scrollMoveCounter;
+	private int scrollMode;
 
 	private HorizontalScrollView sv;
 	private ViewFlipper viewFlipper;
@@ -72,6 +74,8 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 		asleep = false;
 		awoken = true;
+		scrollMoveCounter = 0;
+		scrollMode = 1;
 
 		sv = (HorizontalScrollView)findViewById(R.id.scroll_view);
 		sv.setFadingEdgeLength(100);
@@ -149,14 +153,8 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
     		path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
     		path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
     		
-    		TextView textView = (TextView) findViewById(R.id.test_output);
     		path = new File(path.toString() + "/" + "Ringtones");
-    		
 			String[] temp = path.list();
-			
-			for(String s : temp){
-				textView.setText(textView.getText() + "\n" + s);
-			}
 			
 			return temp;
 		} else{
@@ -238,7 +236,10 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		viewFlipper.showPrevious();
 		
 		((android.widget.TextView) findViewById(R.id.track_info)).setText(trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4));
+		
 		sv.scrollTo(0, 0);
+		scrollMode = 1;
+		scrollMoveCounter = 0;
 	}
 
 	public void nextTrack() {
@@ -263,7 +264,10 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		viewFlipper.showNext();
 		
 		((android.widget.TextView) findViewById(R.id.track_info)).setText(trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4));
+		
 		sv.scrollTo(0, 0);
+		scrollMode = 1;
+		scrollMoveCounter = 0;
 	}
 
 	public void playPause() {
@@ -351,7 +355,26 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	
 	public void scrollAlittle(){
-		sv.scrollBy(1, 0);
+		if(scrollMode == 1 && ((android.widget.TextView) findViewById(R.id.track_info)).getRight()-sv.getWidth()==sv.getScrollX()){
+			scrollMode = 2;
+			scrollMoveCounter = 0;
+		} else if(scrollMode == 2 && sv.getScrollX()==0){
+			scrollMode = 1;
+			scrollMoveCounter = 0;
+		}
+		
+		if(scrollMoveCounter < 40){
+			scrollMoveCounter++;
+		}else{
+			if(scrollMode == 1) sv.scrollBy(1, 0);
+			if(scrollMode == 2) sv.scrollBy(-7, 0);
+		}
+		/*
+		int temp = ;
+		int temp2 = sv.getWidth();
+		//int temp3 = sv.getScrollX();
+		((android.widget.TextView) findViewById(R.id.test_output)).setText(sv.getScrollX() + "");
+		*/
 	}
 	
 	public void quitApplication(){
