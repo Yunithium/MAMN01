@@ -29,7 +29,7 @@ public class WallButton{
 	public boolean contact(float x, float y){
 		switch(alignation){
 		case ALIGNED_TOP:		return y <= radius+thickness && x >= start && x <= start+length;
-		case ALIGNED_BOTTOM:	return y >= displaySize[1]-2*radius-thickness && x >= start && x <= start+length;
+		case ALIGNED_BOTTOM:	return y >= displaySize[1]-2*radius-thickness-7 && x >= start && x <= start+length;
 		case ALIGNED_LEFT:		return x <= radius+thickness && y >= start && y <= start+length;
 		default:				return x >= displaySize[0]-radius-thickness && y >= start && y <= start+length;
 		}
@@ -39,7 +39,7 @@ public class WallButton{
 		boolean temp;
 		switch(alignation){
 		case ALIGNED_TOP:		temp = y >= radius+thickness+offset || x <= start-offset || x >= start+length+offset; break;
-		case ALIGNED_BOTTOM:	temp = y <= displaySize[1]-2*radius-thickness-offset || x <= start-offset || x >= start+length+offset; break;
+		case ALIGNED_BOTTOM:	temp = y <= displaySize[1]-2*radius-thickness-7-offset || x <= start-offset || x >= start+length+offset; break;
 		case ALIGNED_LEFT:		temp = x >= radius+thickness+offset || y <= start-offset || y >= start+length+offset; break;
 		default:				temp = x <= displaySize[0]-radius-thickness-offset || y <= start-offset || y >= start+length+offset;
 		}

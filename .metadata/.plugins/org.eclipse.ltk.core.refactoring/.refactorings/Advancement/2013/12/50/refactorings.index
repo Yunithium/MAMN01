@@ -15,3 +15,7 @@
 1386601809715	Move file
 1386602208376	Rename resource 'daft-punk-ram.jpg'
 1386623044787	Rename field 'scrollSpeedCounter'
+1386626230683	Rename method 'quitApplication'
+1386629796296	Rename field 'bottomButton'
+1386629808549	Rename field 'leftButton'
+1386629817600	Rename field 'rightButton'

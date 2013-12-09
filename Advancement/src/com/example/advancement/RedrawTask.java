@@ -25,6 +25,7 @@ public class RedrawTask extends TimerTask{
 	private short refreshTime;
 	private boolean paused = false;
 	private int activeActivity;
+	private int specialTopAdjustment = 75;
 	
 	public CustomActivity parent;
 	private FrameLayout mainView;
@@ -32,7 +33,7 @@ public class RedrawTask extends TimerTask{
 	private Handler RedrawHandler = new Handler();
 	private Vibrator vibrator;
 	
-	private WallButton bottomButton, leftButton, rightButton, quitButton, playlistButton;	// Playback buttons
+	private WallButton playPauseButton, previousButton, nextButton, quitButton, playlistButton;	// Playback buttons
 	
 	public RedrawTask(short refreshTime, Display display){
 		super();
@@ -64,21 +65,23 @@ public class RedrawTask extends TimerTask{
 		else if(parent instanceof PlaylistActivity) activeActivity = 1;
 		
 		if(activeActivity == 0){
-			((PlaybackActivity)parent).activateButton(R.id.bar1);
-			((PlaybackActivity)parent).activateButton(R.id.bar2);
+			((PlaybackActivity)parent).activateButton(R.id.quit);
+			((PlaybackActivity)parent).activateButton(R.id.playlist);
+			((PlaybackActivity)parent).activateButton(R.id.play_pause);
+			((PlaybackActivity)parent).activateButton(R.id.previous);
+			((PlaybackActivity)parent).activateButton(R.id.next);
 			
-	        bottomButton = new WallButton(0, displaySize[0], WallButton.ALIGNED_BOTTOM, 30, displaySize);
-	        leftButton = new WallButton(333, 300, WallButton.ALIGNED_LEFT, 30, displaySize);
-	        rightButton = new WallButton(333, 300, WallButton.ALIGNED_RIGHT, 30, displaySize);
-	        
-	        quitButton = new WallButton(0, 100, WallButton.ALIGNED_TOP, 30, displaySize);
-	        playlistButton = new WallButton(displaySize[1]-100, displaySize[1], WallButton.ALIGNED_TOP, 30, displaySize);
+			quitButton = new WallButton(0, 75, WallButton.ALIGNED_TOP, 30, displaySize);
+	        playlistButton = new WallButton(displaySize[0]-75, displaySize[0], WallButton.ALIGNED_TOP, 30, displaySize);
+			
+	        playPauseButton = new WallButton(0, displaySize[0], WallButton.ALIGNED_BOTTOM, 30, displaySize);
+	        previousButton = new WallButton(333, 300, WallButton.ALIGNED_LEFT, 30, displaySize);
+	        nextButton = new WallButton(333, 300, WallButton.ALIGNED_RIGHT, 30, displaySize);
 		}
 	}
 	
 	public void pause(){
 		RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
-		//ballView = null;
 		paused = true;
 	}
 	
@@ -97,23 +100,17 @@ public class RedrawTask extends TimerTask{
 	}
 	
 	public void updatePos(float[] position){
-		if(paused){
-			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).makeToast("Using ballView when it's null"); }});
-		}
 		ballView.x = position[0];
 		ballView.y = position[1];
 	}
 	
 	public void resetPos(){
-		if(paused){
-			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).makeToast("Using ballView when it's null"); }});
-		}
 		ballView.x = displaySize[0]/2;
 		ballView.y = displaySize[1]/2;
 	}
 
 	public void run(){
-		if(paused) return;
+		if(paused){ return; }
 		
 		// Was it really 10 milliseconds since the last frame?
 		pastTime = currentTime;
@@ -121,14 +118,18 @@ public class RedrawTask extends TimerTask{
 		float ratio = (currentTime - pastTime) / refreshTime;
 		
 		// Move the ball
-		ballView.x += speed[0] * ratio;
-		ballView.y += speed[1] * ratio;
+		float factor = 0.8f;
+		if(speed[0] > 0) ballView.x += 1.6f * speed[0] * ratio * factor;
+		if(speed[0] < 0) ballView.x += 1.3f * speed[0] * ratio * factor;
+		
+		if(speed[1] > 0) ballView.y += 3.1f * speed[1] * ratio * factor;
+		if(speed[1] < 0) ballView.y += 1.6f * speed[1] * ratio * factor;
 
 		// Making sure the ball is within the outermost confinement
 		if(ballView.x < ballView.radius){ ballView.x = ballView.radius; }
 		else if(ballView.x > displaySize[0]-ballView.radius){ ballView.x = displaySize[0]-ballView.radius; }
 		
-		if(ballView.y < ballView.radius){ ballView.y = ballView.radius; }
+		if(ballView.y < ballView.radius + specialTopAdjustment){ ballView.y = ballView.radius + specialTopAdjustment; } // specialTopAdjustment
 		else if(ballView.y > displaySize[1]-ballView.radius){ ballView.y = displaySize[1]-ballView.radius; }
 		
 		
@@ -142,41 +143,51 @@ public class RedrawTask extends TimerTask{
 	}
 	
 	private void animatePlaybackActivity(){
-		if(quitButton.contact(ballView.x, ballView.y)){
-			ballView.y = ballView.radius + quitButton.thickness;
+		if(quitButton.contact(ballView.x, ballView.y - specialTopAdjustment)){
+			ballView.y = ballView.radius + quitButton.thickness + specialTopAdjustment;
 			if(quitButton.active){
 				quitButton.active = false;
 				vibrator.vibrate(25);
 				
 				paused = true;
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).minimizeApplication(); }});
 				RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
-				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).quitApplication(); }});
-				//RedrawHandler.post(new Runnable(){ public void run(){ parent.changeActivity(); }});
 			}
 		}
 		
-		if(bottomButton.contact(ballView.x, ballView.y)){
-			ballView.y = displaySize[1] - 2*ballView.radius - bottomButton.thickness;
-			if(bottomButton.active){
-				bottomButton.active = false;
+		if(playlistButton.contact(ballView.x, ballView.y - specialTopAdjustment)){
+			ballView.y = ballView.radius + playlistButton.thickness + specialTopAdjustment;
+			if(playlistButton.active){
+				playlistButton.active = false;
+				vibrator.vibrate(25);
+				
+				paused = true;
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).changeActivity(); }});
+			}
+		}
+		
+		if(playPauseButton.contact(ballView.x, ballView.y)){
+			ballView.y = displaySize[1] - 2*ballView.radius-7 - playPauseButton.thickness;
+			if(playPauseButton.active){
+				playPauseButton.active = false;
 				vibrator.vibrate(25);
 				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).playPause(); }});
 			}
 		}
 		
-		if(leftButton.contact(ballView.x, ballView.y)){
-			ballView.x = ballView.radius + leftButton.thickness;
-			if(leftButton.active){
-				leftButton.active = false;
+		if(previousButton.contact(ballView.x, ballView.y)){
+			ballView.x = ballView.radius + previousButton.thickness;
+			if(previousButton.active){
+				previousButton.active = false;
 				vibrator.vibrate(25);
 				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).previousTrack(); }});
 			}
 		}
 		
-		if(rightButton.contact(ballView.x, ballView.y)){
-			ballView.x = displaySize[0] - ballView.radius - leftButton.thickness;
-			if(rightButton.active){
-				rightButton.active = false;
+		if(nextButton.contact(ballView.x, ballView.y)){
+			ballView.x = displaySize[0] - ballView.radius - previousButton.thickness;
+			if(nextButton.active){
+				nextButton.active = false;
 				vibrator.vibrate(25);
 				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).nextTrack(); }});
 			}
@@ -184,12 +195,14 @@ public class RedrawTask extends TimerTask{
 		
 		
 		// Checking for button reviving, only some buttons change when decontacted
-		quitButton.decontact(ballView.x, ballView.y);
-		bottomButton.decontact(ballView.x, ballView.y);
-		if(leftButton.decontact(ballView.x, ballView.y))
-			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.bar1); }});
-		if(rightButton.decontact(ballView.x, ballView.y))
-			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.bar2); }});
+		if(quitButton.decontact(ballView.x, ballView.y-75))
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.quit); }});
+		if(playPauseButton.decontact(ballView.x, ballView.y))
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.play_pause); }});
+		if(previousButton.decontact(ballView.x, ballView.y))
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.previous); }});
+		if(nextButton.decontact(ballView.x, ballView.y))
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.next); }});
 	}
 	
 	private void animatePlaylistActivity(){

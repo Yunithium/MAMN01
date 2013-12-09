@@ -76,41 +76,38 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		awoken = true;
 		scrollMoveCounter = 0;
 		scrollMode = 1;
-
+		
+		((android.widget.TextView) findViewById(R.id.track_info)).setText("Stevie Ray Vaughan - Mary Had A Little Lamb");
+		
 		sv = (HorizontalScrollView)findViewById(R.id.scroll_view);
 		sv.setFadingEdgeLength(100);
-		((android.widget.TextView) findViewById(R.id.track_info)).setText("Taylor Swift - I Knew You Were Trouble");
 		
-		// Send the context and the view the ball is to be rendered on to the rendertask.
 		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place);
-		redrawTask = new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay());
-		redrawTask.changeContext(this, mainView);
-
 		rollingStone = RollingStone.getInstance();
-		rollingStone.setRedrawTask(redrawTask);
-		setUpViewFlipper();
-		
 		timer = new Timer();
-		timer.schedule(redrawTask, 100, refreshTime);
-		
-		initializeMedia();
 		timeLine = (SeekBar) findViewById(R.id.seekbartimeline);
+		
+		setUpViewFlipper();
+		initializeMedia();
 
 		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
 				@Override
 				public void onSensorChanged(SensorEvent event) {
 					event.values[0] = -event.values[0];
-					redrawTask.updateSpeed(event.values, awoken);
-					if(awoken){
-						redrawTask.resetPos();
-						awoken = false;
-					}
-					
-					if(running){
-						int mediaDuration = track.getDuration();
-						int mediaPosition = track.getCurrentPosition();
-						timeLine.setMax(mediaDuration);
-						timeLine.setProgress(mediaPosition);
+					if(!asleep){
+						redrawTask.updateSpeed(event.values, awoken);
+						
+						if(awoken){
+							redrawTask.resetPos();
+							awoken = false;
+						}
+						
+						if(running){
+							int mediaDuration = track.getDuration();
+							int mediaPosition = track.getCurrentPosition();
+							timeLine.setMax(mediaDuration);
+							timeLine.setProgress(mediaPosition);
+						}
 					}
 				}
 				@Override
@@ -130,8 +127,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 
 	public void changeActivity() {
-		//Toast.makeText(this, "Wall hit!", Toast.LENGTH_SHORT).show();
-
+		Button button = (android.widget.Button) findViewById(R.id.playlist);
+		button.setBackgroundColor(Color.GREEN);
+		
 		Intent intent = new Intent(this, PlaylistActivity.class);
 		startActivity(intent);
 		overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
@@ -158,7 +156,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 			
 			return temp;
 		} else{
-			Toast.makeText(getBaseContext(), "SD Card is either mounted elsewhere or is unusable", Toast.LENGTH_LONG).show();
+			//Toast.makeText(getBaseContext(), "SD Card is either mounted elsewhere or is unusable", Toast.LENGTH_LONG).show();
 		}
     	return null;
     }
@@ -171,7 +169,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 					trackArtworks.add(temp[i].substring(0, temp[i].length()-4));
 				}
 			}
-			Toast.makeText(getBaseContext(), "Loaded " + Integer.toString(trackNames.size()) + " Tracks", Toast.LENGTH_SHORT).show();
+			//Toast.makeText(getBaseContext(), "Loaded " + Integer.toString(trackNames.size()) + " Tracks", Toast.LENGTH_SHORT).show();
 		}
     }
 	
@@ -200,7 +198,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 			return new Music(fileDescriptor);
 		} catch(IOException e){
 			e.printStackTrace();
-			Toast.makeText(getBaseContext(), "Error Loading " + trackNames.get(currentTrack), Toast.LENGTH_LONG).show();
+			//Toast.makeText(getBaseContext(), "Error Loading " + trackNames.get(currentTrack), Toast.LENGTH_LONG).show();
 		}
 		return null;
     }
@@ -208,7 +206,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	private void playTrack(){
     	if(isTuning && track != null){
 			track.play();
-			Toast.makeText(getBaseContext(), "Playing " + trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4), Toast.LENGTH_SHORT).show();
+			//Toast.makeText(getBaseContext(), "Playing " + trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4), Toast.LENGTH_SHORT).show();
 		}
     	track.setOnCompletionListener(this);
     }
@@ -223,7 +221,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		playTrack();
 		
 		
-		Button button = (android.widget.Button) findViewById(R.id.bar1);
+		Button button = (android.widget.Button) findViewById(R.id.previous);
 		button.setBackgroundColor(Color.GREEN);
 
 		viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_right_in));
@@ -251,7 +249,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		loadTrack();
 		playTrack();
 		
-		Button button = (android.widget.Button) findViewById(R.id.bar2);
+		Button button = (android.widget.Button) findViewById(R.id.next);
 		button.setBackgroundColor(Color.GREEN);
 
 		viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_in));
@@ -271,6 +269,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 
 	public void playPause() {
+		Button button = (android.widget.Button) findViewById(R.id.play_pause);
+		button.setBackgroundColor(Color.GREEN);
+		
 		synchronized(this){
 			if(isTuning){
 				isTuning = false;
@@ -297,7 +298,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		viewFlipper = (ViewFlipper) findViewById(R.id.flipper_of_views);
 
 		imageView = (ImageView) findViewById(imageViews[currentImage]);
-		imageView.setImageResource(rollingStone.getTrackinfo("Taylor Swift - I Knew You Were Trouble.mp3"));
+		imageView.setImageResource(rollingStone.getTrackinfo("Stevie Ray Vaughan - Mary Had A Little Lamb.mp3"));
 	}
 
 	public Vibrator getVibrator() {
@@ -305,13 +306,19 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	
 	public void onResume() {
+		rollingStone.setRedrawTask(new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay()));
+		redrawTask = rollingStone.getRedrawTask();
+		timer.schedule(redrawTask, 100, refreshTime);
+		
+		redrawTask.changeContext(this, mainView);
+		redrawTask.resetPos();
+		
 		if(asleep){
 			asleep = false;
 			awoken = true;
 		}
 		
 		//makeToast("Resuming");
-		redrawTask.changeContext(this, mainView);
 		if (!running) {
 			running = true;
 		}
@@ -319,11 +326,14 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	public void onPause() {
 		asleep = true;
-		//makeToast("Pausing");
+		redrawTask.resetPos();
 		redrawTask.pause();
+		redrawTask = null;
+		
 		super.onPause();
 	}
 	public void onDestroy(){
+		makeToast("Quitting application");
 		if (running) {
 			running = false;
 		}
@@ -369,16 +379,16 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 			if(scrollMode == 1) sv.scrollBy(1, 0);
 			if(scrollMode == 2) sv.scrollBy(-7, 0);
 		}
-		/*
-		int temp = ;
-		int temp2 = sv.getWidth();
-		//int temp3 = sv.getScrollX();
-		((android.widget.TextView) findViewById(R.id.test_output)).setText(sv.getScrollX() + "");
-		*/
 	}
 	
-	public void quitApplication(){
-		// This will eventually call onPause()
+	public void minimizeApplication(){
+		Button button = (android.widget.Button) findViewById(R.id.quit);
+		button.setBackgroundColor(Color.GREEN);
+		
+		asleep = true;
+		redrawTask.resetPos();
+		redrawTask.pause();
+		
 		Intent startMain = new Intent(Intent.ACTION_MAIN);
 		startMain.addCategory(Intent.CATEGORY_HOME);
 		startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
