@@ -67,7 +67,6 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	private Music track;
 	private boolean isTuning; //is user currently jamming out, if so automatically start playing the next track...?
 	private int currentTrack;
-	private long delayTime;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -99,21 +98,19 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
 				@Override
 				public void onSensorChanged(SensorEvent event) {
-					if((SystemClock.uptimeMillis() - delayTime) > 1000){
-						event.values[0] = -event.values[0];
-						if(!asleep){
-							redrawTask.updateSpeed(event.values, awoken);
-							
-							if(awoken){
-								redrawTask.resetPos();
-								awoken = false;
-							}
-							
-							int mediaDuration = track.getDuration();
-							int mediaPosition = track.getCurrentPosition();
-							timeLine.setMax(mediaDuration);
-							timeLine.setProgress(mediaPosition);
+					event.values[0] = -event.values[0];
+					if(!asleep){
+						redrawTask.updateSpeed(event.values, awoken);
+						
+						if(awoken){
+							redrawTask.resetPos();
+							awoken = false;
 						}
+						
+						int mediaDuration = track.getDuration();
+						int mediaPosition = track.getCurrentPosition();
+						timeLine.setMax(mediaDuration);
+						timeLine.setProgress(mediaPosition);
 					}
 				}
 				@Override
@@ -314,7 +311,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	
 	public void onResume() {
-		delayTime = SystemClock.uptimeMillis();
+		SystemClock.sleep(7000);
 		if(asleep){
 			rollingStone.setRedrawTask(new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay()));
 			timer.schedule(rollingStone.getRedrawTask(), 100, refreshTime);

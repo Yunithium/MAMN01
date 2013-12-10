@@ -99,7 +99,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
 				@Override
 				public void onSensorChanged(SensorEvent event) {
-					if((SystemClock.uptimeMillis() - delayTime) > 1000){
+					if((SystemClock.uptimeMillis() - delayTime) > 3000){
 						event.values[0] = -event.values[0];
 						if(!asleep){
 							redrawTask.updateSpeed(event.values, awoken);
