@@ -48,6 +48,12 @@ public class RedrawTask extends TimerTask{
         rightButton = new WallButton(333, 300, WallButton.ALIGNED_RIGHT, 30, displaySize);
 	}
 	
+	public void resetBall(){
+		paused = false;
+		ballView.x = displaySize[0]/2;
+		ballView.y = displaySize[1]/2;
+	}
+	
 	public void changeContext(CustomActivity parent, FrameLayout mainView){
 		this.parent = parent;
 		this.ballView = new BallView((Activity)parent, 200, 200, 30);
@@ -95,7 +101,7 @@ public class RedrawTask extends TimerTask{
 		ballView.x = position[0];
 		ballView.y = position[1];
 	}
-
+	
 	public void run(){
 		if(paused) return;
 		

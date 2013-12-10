@@ -12,7 +12,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.PowerManager;
+import android.os.PowerManager.WakeLock;
 import android.os.Vibrator;
+import android.provider.Settings.SettingNotFoundException;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
@@ -40,7 +43,14 @@ public class PlaybackActivity extends Activity implements CustomActivity {
 	private int[] imageViews;
 
 	private SeekBar timeLine;
-
+	private int defaultBrightness;
+	private WindowManager.LayoutParams layout;
+	
+	private boolean standby = false;
+	private float[] oldXYZ = {0.0f,0.0f,0.0f};
+	private long lastUpdate;
+	private long awokenTime = 0;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -53,6 +63,18 @@ public class PlaybackActivity extends Activity implements CustomActivity {
 		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place);
 		redrawTask = new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay());
 
+		try {
+			defaultBrightness = android.provider.Settings.System.getInt(getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS);
+		} catch (SettingNotFoundException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		
+		/* Ta bort dessa tre rader, bara där för att återställa den. */
+		layout = getWindow().getAttributes();
+		layout.screenBrightness = defaultBrightness/100.0f;
+		getWindow().setAttributes(layout);
+		
 		setUpViewFlipper();
 
 		rollingStone = RollingStone.getInstance();
@@ -73,13 +95,31 @@ public class PlaybackActivity extends Activity implements CustomActivity {
 					@Override
 					public void onSensorChanged(SensorEvent event) {
 						event.values[0] = -event.values[0];
-						redrawTask.updateSpeed(event.values);
-						// MEDIAPLAYER
-						int mediaDuration = mediaPlayer.getDuration();
-						int mediaPosition = mediaPlayer.getCurrentPosition();
-						timeLine.setMax(mediaDuration);
-						timeLine.setProgress(mediaPosition);
-						// END MEDIAPLAYER
+						if(standby){
+							long currentTime = System.currentTimeMillis();
+							if((currentTime - lastUpdate)>100){
+								long diffTime = currentTime - lastUpdate;
+								lastUpdate = currentTime;
+								float speed = Math.abs(event.values[0]+event.values[1]+event.values[2]-oldXYZ[0]-oldXYZ[0]-oldXYZ[0]) / diffTime*10000;
+								oldXYZ = event.values;
+								if(speed > 3200){
+									awake();
+								}
+							}
+						} else {
+							if(System.currentTimeMillis()-awokenTime>400){
+								redrawTask.updateSpeed(event.values);
+								// MEDIAPLAYER
+								int mediaDuration = mediaPlayer.getDuration();
+								int mediaPosition = mediaPlayer.getCurrentPosition();
+								timeLine.setMax(mediaDuration);
+								timeLine.setProgress(mediaPosition);
+								// END MEDIAPLAYER
+							} else {
+								redrawTask.resetBall();
+								redrawTask.updateSpeed(new float[]{0f,0f});
+							}
+						}
 					}
 
 					@Override
@@ -166,6 +206,7 @@ public class PlaybackActivity extends Activity implements CustomActivity {
 		try {
 			if (mediaPlayer.isPlaying()) {
 				mediaPlayer.pause();
+				standby();
 			} else {
 				mediaPlayer.start();
 			}
@@ -173,6 +214,22 @@ public class PlaybackActivity extends Activity implements CustomActivity {
 			Toast.makeText(this, "Can't play", Toast.LENGTH_SHORT).show();
 			e.printStackTrace();
 		}
+	}
+	
+	public void awake(){
+		standby=false;
+		layout.screenBrightness = defaultBrightness;
+		getWindow().setAttributes(layout);
+		awokenTime = System.currentTimeMillis();
+		redrawTask.changeContext(this, mainView);
+		onResume();
+	}
+	
+	public void standby(){
+		standby=true;
+		redrawTask.pause();
+		layout.screenBrightness = 0.01F;
+		getWindow().setAttributes(layout);
 	}
 
 	public void activateButton(int buttonID) {

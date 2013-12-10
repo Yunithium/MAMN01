@@ -23,6 +23,7 @@ import android.media.MediaPlayer.OnCompletionListener;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Vibrator;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
@@ -395,5 +396,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		startMain.addCategory(Intent.CATEGORY_HOME);
 		startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		startActivity(startMain);
+	}
+	
+	public void testTest(View view){
+		makeToast("Play");
 	}
 }

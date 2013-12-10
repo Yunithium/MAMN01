@@ -84,8 +84,7 @@
 	     android:keepScreenOn="true"
 	     android:text="@string/playback"
 	     android:textColor="#FFFFFF"
-	     android:textSize="18sp"
-	     android:textStyle="bold"/>
+	     android:textSize="18sp"/>
     </HorizontalScrollView>
     
     <FrameLayout 
@@ -134,6 +133,42 @@
             android:layout_gravity="right" />
         
     </FrameLayout>
+    
+    <!-- Add buttons here e e e e -->
+    <ImageButton
+        android:contentDescription="@string/description"
+		android:id="@+id/previous_button"
+		android:src="@drawable/previousbutton"
+		android:background="@null"
+		android:layout_gravity="center_vertical|left"
+		android:layout_marginTop="50dp"
+		android:layout_marginLeft="15dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:onClick="testTest" />
+    
+    <ImageButton
+        android:contentDescription="@string/description"
+		android:id="@+id/next_button"
+		android:src="@drawable/nextbutton"
+		android:background="@null"
+		android:layout_gravity="center_vertical|right"
+		android:layout_marginTop="50dp"
+		android:layout_marginRight="15dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:onClick="testTest" />
+    
+    <ImageButton
+        android:contentDescription="@string/description"
+		android:id="@+id/play_pause_button"
+		android:src="@drawable/playbutton"
+		android:background="@null"
+		android:layout_gravity="center_horizontal|bottom"
+		android:layout_marginBottom="15dp"
+		android:layout_width="wrap_content"
+		android:layout_height="wrap_content"
+		android:onClick="testTest" />
     
 	<Button
 	    android:id="@+id/play_pause"
