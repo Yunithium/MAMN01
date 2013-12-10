@@ -43,9 +43,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	private Timer timer;
 	private RedrawTask redrawTask;
 	private short refreshTime = 10;
-	private boolean running = false;
 	private boolean asleep;
 	private boolean awoken;
+	private boolean changingActivity;
 	private int scrollMoveCounter;
 	private int scrollMode;
 
@@ -72,8 +72,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.playback_activity);
 		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-		asleep = false;
+		asleep = true;
 		awoken = true;
+		changingActivity = false;
 		scrollMoveCounter = 0;
 		scrollMode = 1;
 		
@@ -84,7 +85,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		
 		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place);
 		rollingStone = RollingStone.getInstance();
-		timer = new Timer();
+		rollingStone.setTimer(new Timer());
+		timer = rollingStone.getTimer();
+		
 		timeLine = (SeekBar) findViewById(R.id.seekbartimeline);
 		
 		setUpViewFlipper();
@@ -102,12 +105,10 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 							awoken = false;
 						}
 						
-						if(running){
-							int mediaDuration = track.getDuration();
-							int mediaPosition = track.getCurrentPosition();
-							timeLine.setMax(mediaDuration);
-							timeLine.setProgress(mediaPosition);
-						}
+						int mediaDuration = track.getDuration();
+						int mediaPosition = track.getCurrentPosition();
+						timeLine.setMax(mediaDuration);
+						timeLine.setProgress(mediaPosition);
 					}
 				}
 				@Override
@@ -129,6 +130,8 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	public void changeActivity() {
 		Button button = (android.widget.Button) findViewById(R.id.playlist);
 		button.setBackgroundColor(Color.GREEN);
+		
+		changingActivity = true;
 		
 		Intent intent = new Intent(this, PlaylistActivity.class);
 		startActivity(intent);
@@ -306,37 +309,36 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	}
 	
 	public void onResume() {
-		rollingStone.setRedrawTask(new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay()));
+		if(asleep){
+			rollingStone.setRedrawTask(new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay()));
+			timer.schedule(rollingStone.getRedrawTask(), 100, refreshTime);
+		}
 		redrawTask = rollingStone.getRedrawTask();
-		timer.schedule(redrawTask, 100, refreshTime);
-		
 		redrawTask.changeContext(this, mainView);
 		redrawTask.resetPos();
 		
 		if(asleep){
 			asleep = false;
-			awoken = true;
+			if(!changingActivity)
+				awoken = true;
 		}
-		
-		//makeToast("Resuming");
-		if (!running) {
-			running = true;
-		}
+		changingActivity = false;
 		super.onResume();
 	}
 	public void onPause() {
-		asleep = true;
 		redrawTask.resetPos();
-		redrawTask.pause();
-		redrawTask = null;
+		if(changingActivity){
+			
+		}else{
+			redrawTask.pause();
+			asleep = true;
+			redrawTask = null;
+		}
 		
 		super.onPause();
 	}
 	public void onDestroy(){
 		makeToast("Quitting application");
-		if (running) {
-			running = false;
-		}
 		if (track != null) {
 			if (track.isPlaying()) {
 				track.pause();

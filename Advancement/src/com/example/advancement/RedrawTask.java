@@ -23,7 +23,7 @@ public class RedrawTask extends TimerTask{
 	private int[] displaySize;
 	private long pastTime, currentTime;
 	private short refreshTime;
-	private boolean paused = false;
+	public boolean paused = false;
 	private int activeActivity;
 	private int specialTopAdjustment = 75;
 	
@@ -74,9 +74,11 @@ public class RedrawTask extends TimerTask{
 			quitButton = new WallButton(0, 75, WallButton.ALIGNED_TOP, 30, displaySize);
 	        playlistButton = new WallButton(displaySize[0]-75, displaySize[0], WallButton.ALIGNED_TOP, 30, displaySize);
 			
-	        playPauseButton = new WallButton(0, displaySize[0], WallButton.ALIGNED_BOTTOM, 30, displaySize);
+	        playPauseButton = new WallButton(75, 320, WallButton.ALIGNED_BOTTOM, 30, displaySize);
 	        previousButton = new WallButton(333, 300, WallButton.ALIGNED_LEFT, 30, displaySize);
 	        nextButton = new WallButton(333, 300, WallButton.ALIGNED_RIGHT, 30, displaySize);
+		}else if(activeActivity == 1){
+			
 		}
 	}
 	
@@ -118,8 +120,8 @@ public class RedrawTask extends TimerTask{
 		float ratio = (currentTime - pastTime) / refreshTime;
 		
 		// Move the ball
-		float factor = 0.8f;
-		if(speed[0] > 0) ballView.x += 1.6f * speed[0] * ratio * factor;
+		float factor = 0.6f;
+		if(speed[0] > 0) ballView.x += 1.5f * speed[0] * ratio * factor;
 		if(speed[0] < 0) ballView.x += 1.3f * speed[0] * ratio * factor;
 		
 		if(speed[1] > 0) ballView.y += 3.1f * speed[1] * ratio * factor;
@@ -130,7 +132,7 @@ public class RedrawTask extends TimerTask{
 		else if(ballView.x > displaySize[0]-ballView.radius){ ballView.x = displaySize[0]-ballView.radius; }
 		
 		if(ballView.y < ballView.radius + specialTopAdjustment){ ballView.y = ballView.radius + specialTopAdjustment; } // specialTopAdjustment
-		else if(ballView.y > displaySize[1]-ballView.radius){ ballView.y = displaySize[1]-ballView.radius; }
+		else if(ballView.y > displaySize[1]-2*ballView.radius-8){ ballView.y = displaySize[1]-2*ballView.radius-8; }
 		
 		
 		// AFTER THIS POINT THE ACTIVITY SPECIFIC CODING BEGINS
@@ -138,7 +140,6 @@ public class RedrawTask extends TimerTask{
 		else if(activeActivity == 1) animatePlaylistActivity();
 		
 		// REDRAW THE BALLVIEW and SCROLL A LITTLE
-		RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).scrollAlittle(); }});
 		RedrawHandler.post(new Runnable(){ public void run() {	ballView.invalidate(); }});
 	}
 	
@@ -163,6 +164,7 @@ public class RedrawTask extends TimerTask{
 				
 				paused = true;
 				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).changeActivity(); }});
+				RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
 			}
 		}
 		
@@ -203,9 +205,12 @@ public class RedrawTask extends TimerTask{
 			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.previous); }});
 		if(nextButton.decontact(ballView.x, ballView.y))
 			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).activateButton(R.id.next); }});
+		
+		RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).scrollAlittle(); }});
 	}
 	
 	private void animatePlaylistActivity(){
 		// This function is called when the PLAYLIST context is active
+		//RedrawHandler.post(new Runnable(){ public void run(){ ((PlaylistActivity)parent).makeToast("Running playlist activity"); }});
 	}
 }

@@ -1,20 +1,29 @@
 package com.example.advancement;
 
+import java.util.Timer;
+
 import com.example.advancement.R;
 
 import android.app.Activity;
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.Window;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 public class PlaylistActivity extends Activity implements CustomActivity{
 	private FrameLayout mainView;
 	private RollingStone rollingStone;
 	private RedrawTask redrawTask;
+	//private Timer timer;
 	private boolean running = false;
+	//private short refreshTime = 10;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -24,8 +33,20 @@ public class PlaylistActivity extends Activity implements CustomActivity{
 		//setupActionBar();
 		
 		rollingStone = RollingStone.getInstance();
-		redrawTask = rollingStone.getRedrawTask();
+		//redrawTask = rollingStone.getRedrawTask();
+		//timer = rollingStone.getTimer();
 		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place_playback);
+		
+		
+		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
+			@Override
+			public void onSensorChanged(SensorEvent event) {
+				event.values[0] = -event.values[0];
+					redrawTask.updateSpeed(event.values, false);
+				}
+			@Override
+			public void onAccuracyChanged(Sensor sensor, int accuracy) { } // ignore this event
+	}, ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_GAME);
 	}
 	
 	public void changeActivity(){
@@ -39,19 +60,20 @@ public class PlaylistActivity extends Activity implements CustomActivity{
 	
 	@Override
 	public void onResume() {
-		if (!running) {
-			redrawTask.changeContext(this, mainView);
-			running = true;
-		}
+		redrawTask = rollingStone.getRedrawTask();
+		redrawTask.changeContext(this, mainView);
+		redrawTask.paused = false;
+		
 		super.onResume();
 	}
 	
 	@Override
 	public void onPause() {
-		if (running) {
-			redrawTask.pause();
-			running = false;
-		}
+		redrawTask.pause();
 		super.onPause();
+	}
+	
+	public void makeToast(String s) {
+		Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
 	}
 }

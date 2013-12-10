@@ -2,6 +2,7 @@ package com.example.advancement;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Timer;
 
 import com.example.advancement.R;
 
@@ -13,8 +14,9 @@ public class RollingStone extends Application{
 	public int[] trax;
 	public int currentSong;
 	private ArrayList<String> playlist;
-	private RedrawTask redrawTask;
+	public RedrawTask redrawTask;
 	private HashMap<String, Integer> tracks;
+	private Timer timer;
 	
 	public static RollingStone getInstance(){
 		if(instance==null)
@@ -56,6 +58,14 @@ public class RollingStone extends Application{
 	
 	public RedrawTask getRedrawTask(){
 		return redrawTask;
+	}
+	
+	public void setTimer(Timer timer){
+		this.timer = timer;
+	}
+	
+	public Timer getTimer(){
+		return timer;
 	}
 	
 	public int getTrackinfo(String songName){
