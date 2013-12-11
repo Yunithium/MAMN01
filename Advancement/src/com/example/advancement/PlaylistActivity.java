@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.Vibrator;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.GridView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -23,7 +24,9 @@ public class PlaylistActivity extends Activity implements CustomActivity{
 	private RedrawTask redrawTask;
 	//private Timer timer;
 	private boolean running = false;
-	//private short refreshTime = 10;
+	private GridAdapter gridAdapter;
+	private GridView gridView;
+	private int lastPosition;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +34,11 @@ public class PlaylistActivity extends Activity implements CustomActivity{
 		requestWindowFeature(Window.FEATURE_NO_TITLE);
 		setContentView(R.layout.playlist_activity);
 		//setupActionBar();
+	      
+	    gridView = (GridView) findViewById(R.id.gridview);
+	    gridAdapter = new GridAdapter(this);
+	    gridView.setAdapter(gridAdapter);
+	    lastPosition = GridView.INVALID_POSITION;
 		
 		rollingStone = RollingStone.getInstance();
 		//redrawTask = rollingStone.getRedrawTask();
@@ -47,11 +55,45 @@ public class PlaylistActivity extends Activity implements CustomActivity{
 			@Override
 			public void onAccuracyChanged(Sensor sensor, int accuracy) { } // ignore this event
 	}, ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_GAME);
+	
+		mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
+			public boolean onTouch(android.view.View v,
+					android.view.MotionEvent e) {
+				return true;
+			}
+		});
+	
 	}
 	
 	public void changeActivity(){
 		finish();
 		overridePendingTransition(R.anim.push_right_in, R.anim.push_right_out);
+	}
+	
+	public void changeImage(float x, float y){
+		int position = gridView.pointToPosition((int) x, (int) y);
+		
+		if(position != lastPosition && position != gridView.INVALID_POSITION){
+			gridAdapter.doAchange(position);
+			gridAdapter.notifyDataSetChanged();
+		}
+	}
+	
+	public void scrollGridUp(){
+	if(gridView.getScrollY()==0){
+			
+		} else{
+			gridView.scrollBy(0, -2);
+		}
+	}
+	
+	public void scrollGrid(){
+		if(gridView.getTop()-gridView.getHeight()==gridView.getScrollY()){
+			
+		} else{
+			gridView.scrollBy(0, 2);
+		}
+		
 	}
 	
 	public Vibrator getVibrator() {

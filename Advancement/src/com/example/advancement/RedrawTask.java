@@ -23,7 +23,7 @@ public class RedrawTask extends TimerTask{
 	private int[] displaySize;
 	private long pastTime, currentTime;
 	private short refreshTime;
-	public boolean paused = false;
+	public boolean paused;
 	private int activeActivity;
 	private int specialTopAdjustment = 75;
 	
@@ -33,18 +33,23 @@ public class RedrawTask extends TimerTask{
 	private Handler RedrawHandler = new Handler();
 	private Vibrator vibrator;
 	
+	private boolean temp;
+	
 	private WallButton playPauseButton, previousButton, nextButton, quitButton, playlistButton;	// Playback buttons
 	
 	public RedrawTask(short refreshTime, Display display){
 		super();
 		this.refreshTime = refreshTime;
 		this.currentTime = SystemClock.uptimeMillis();
+		this.paused = false;
 		
 		DisplayMetrics outMetrics = new DisplayMetrics();
 		display.getMetrics(outMetrics);
 		displaySize = new int[2];
         displaySize[0] = outMetrics.widthPixels;
         displaySize[1] = outMetrics.heightPixels;
+        
+        temp = false;
 	}
 	
 	public void changeContext(CustomActivity parent, FrameLayout mainView){
@@ -59,7 +64,6 @@ public class RedrawTask extends TimerTask{
 		this.mainView.addView(ballView);
 		
 		vibrator = (Vibrator) parent.getVibrator();
-		paused = false;
 		
 		if(parent instanceof PlaybackActivity) activeActivity = 0;
 		else if(parent instanceof PlaylistActivity) activeActivity = 1;
@@ -83,12 +87,18 @@ public class RedrawTask extends TimerTask{
 	}
 	
 	public void pause(){
-		RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
 		paused = true;
+		RedrawHandler.post(new Runnable(){ public void run(){ mainView.removeView(ballView); }});
+	}
+	public void unPause(){
+		paused = false;
+		currentTime = SystemClock.uptimeMillis();
+		resetPos();
 	}
 	
 	public void updateSpeed(float[] speed, boolean updateZero){
 		// Calibrate the zero-point from the initial positioning of the phone
+		if(paused && !updateZero){return;}
 		if(updateZero){
 			speedAdjust = new float[2];
 			speedAdjust[0] = speed[0];
@@ -173,7 +183,7 @@ public class RedrawTask extends TimerTask{
 			if(playPauseButton.active){
 				playPauseButton.active = false;
 				vibrator.vibrate(25);
-				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).playPause(); }});
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).playPause(null); }});
 			}
 		}
 		
@@ -182,7 +192,7 @@ public class RedrawTask extends TimerTask{
 			if(previousButton.active){
 				previousButton.active = false;
 				vibrator.vibrate(25);
-				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).previousTrack(); }});
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).previousTrack(null); }});
 			}
 		}
 		
@@ -191,7 +201,7 @@ public class RedrawTask extends TimerTask{
 			if(nextButton.active){
 				nextButton.active = false;
 				vibrator.vibrate(25);
-				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).nextTrack(); }});
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaybackActivity)parent).nextTrack(null); }});
 			}
 		}
 		
@@ -211,6 +221,15 @@ public class RedrawTask extends TimerTask{
 	
 	private void animatePlaylistActivity(){
 		// This function is called when the PLAYLIST context is active
+			if(BallView.y > displaySize[1]-100){
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaylistActivity)parent).scrollGrid(); }});
+			}
+			
+			if(BallView.y < 200){
+				RedrawHandler.post(new Runnable(){ public void run(){ ((PlaylistActivity)parent).scrollGridUp(); }});
+			}
+			RedrawHandler.post(new Runnable(){ public void run(){ ((PlaylistActivity)parent).changeImage(BallView.x, BallView.y); }});
+			temp = true;
 		//RedrawHandler.post(new Runnable(){ public void run(){ ((PlaylistActivity)parent).makeToast("Running playlist activity"); }});
 	}
 }

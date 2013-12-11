@@ -24,13 +24,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
 import android.os.Vibrator;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -69,6 +72,8 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 	private int currentTrack;
 	private long delayTime;
 	
+	private ImageButton playButton;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -80,6 +85,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		changingActivity = false;
 		scrollMoveCounter = 0;
 		scrollMode = 1;
+		playButton = (ImageButton) findViewById(R.id.play_pause_button);
 		
 		((android.widget.TextView) findViewById(R.id.track_info)).setText("Stevie Ray Vaughan - Mary Had A Little Lamb");
 		
@@ -99,13 +105,13 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
 				@Override
 				public void onSensorChanged(SensorEvent event) {
-					if((SystemClock.uptimeMillis() - delayTime) > 1000){
+					if((SystemClock.uptimeMillis() - delayTime) > 300){
 						event.values[0] = -event.values[0];
 						if(!asleep){
 							redrawTask.updateSpeed(event.values, awoken);
 							
 							if(awoken){
-								redrawTask.resetPos();
+								redrawTask.unPause();
 								awoken = false;
 							}
 							
@@ -121,16 +127,32 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		}, ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_GAME);
 		
 		
-		// Move ball on touch
+		// ReMove ball on touch
 		mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
 			public boolean onTouch(android.view.View v,
 					android.view.MotionEvent e) {
-				float position[] = { e.getX(), e.getY() };
-				redrawTask.updatePos(position);
+				disableBall();
 				return true;
 			}
 		});
 	}
+	
+	/* Removes the ball from the field. */
+	public void disableBall(){
+		asleep = true;
+		redrawTask.pause();
+	}
+	
+	/* Enables the ball again. It will start from the center of the display and stay there for a short duration. */
+	public void enableBall(View view){
+		redrawTask.changeContext(this, mainView);
+    	delayTime = SystemClock.uptimeMillis();
+    	
+    	if(asleep){
+			asleep = false;
+			awoken = true;
+		}
+    }
 
 	public void changeActivity() {
 		Button button = (android.widget.Button) findViewById(R.id.playlist);
@@ -219,7 +241,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
     	track.setOnCompletionListener(this);
     }
 
-	public void previousTrack() {
+	public void previousTrack(View view) {
 		currentTrack--;
 		if(currentTrack < 0)
 			currentTrack = trackNames.size()-2;
@@ -228,9 +250,10 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		loadTrack();
 		playTrack();
 		
-		
-		Button button = (android.widget.Button) findViewById(R.id.previous);
-		button.setBackgroundColor(Color.GREEN);
+		if(view == null){
+			Button button = (android.widget.Button) findViewById(R.id.previous);
+			button.setBackgroundColor(Color.GREEN);
+		}
 
 		viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_right_in));
 		viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_right_out));
@@ -248,7 +271,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		scrollMoveCounter = 0;
 	}
 
-	public void nextTrack() {
+	public void nextTrack(View view) {
 		currentTrack++;
 		//if(currentTrack > trackNames.size()-1) // Because of hej
 		if(currentTrack > trackNames.size()-2)
@@ -257,8 +280,10 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		loadTrack();
 		playTrack();
 		
-		Button button = (android.widget.Button) findViewById(R.id.next);
-		button.setBackgroundColor(Color.GREEN);
+		if(view == null){
+			Button button = (android.widget.Button) findViewById(R.id.next);
+			button.setBackgroundColor(Color.GREEN);
+		}
 
 		viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_in));
 		viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_out));
@@ -276,18 +301,22 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		scrollMoveCounter = 0;
 	}
 
-	public void playPause() {
-		Button button = (android.widget.Button) findViewById(R.id.play_pause);
-		button.setBackgroundColor(Color.GREEN);
+	public void playPause(View view) {
+		if(view == null){
+			Button button = (android.widget.Button) findViewById(R.id.play_pause);
+			button.setBackgroundColor(Color.GREEN);
+		}
 		
 		synchronized(this){
 			if(isTuning){
 				isTuning = false;
 				track.pause();
+				playButton.setImageResource(R.drawable.playbutton);
 			} else{
 				isTuning = true;
 				playTrack();
-			}
+				playButton.setImageResource(R.drawable.pausebutton);
+			}	
 		}
 	}
 
@@ -295,7 +324,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		Button button = (android.widget.Button) findViewById(buttonID);
 		button.setBackgroundColor(Color.WHITE);
 	}
-
+	
 	private void setUpViewFlipper() {
 		currentImageView = 0;
 
@@ -331,8 +360,9 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 		changingActivity = false;
 		super.onResume();
 	}
+	
 	public void onPause() {
-		redrawTask.resetPos();
+		//redrawTask.resetPos();
 		if(changingActivity){
 			
 		}else{
@@ -368,7 +398,7 @@ public class PlaybackActivity extends Activity implements CustomActivity, OnComp
 
 	@Override
 	public void onCompletion(MediaPlayer arg0) {
-		nextTrack();
+		nextTrack(null);
 		//makeToast("Music finished playing");
 	}
 	

@@ -1,0 +1,58 @@
+package com.example.advancement;
+
+import android.content.Context;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.ImageView;
+
+public class GridAdapter extends BaseAdapter {
+	private Context context;
+	private int lastElement = GridView.INVALID_POSITION;
+	public Integer[] imageIds = {
+            R.drawable.taylor_swift, R.drawable.justice, 
+            R.drawable.daftpunk, R.drawable.fleetwoodmac
+	};
+	
+	private Integer focusedID = R.drawable.bar_kays;
+	
+	public GridAdapter(Context c) {
+		context = c;
+	}
+	
+	public int getCount() {
+		return imageIds.length;
+	}
+	
+	public Object getItem(int position) {
+		return imageIds[position];
+	}
+	
+	public long getItemId(int position) {
+		return 0;
+	}
+	
+	@Override
+	public View getView(int position, View view, ViewGroup parent) {
+		ImageView iview;
+		if (view == null) {
+			iview = new ImageView(context);
+			iview.setLayoutParams(new GridView.LayoutParams(200,200));
+			iview.setScaleType(ImageView.ScaleType.CENTER_CROP);
+			iview.setPadding(5, 5, 5, 5);
+		} else {
+			iview = (ImageView) view;	
+		}
+		iview.setImageResource(imageIds[position]);
+		return iview;
+	}
+	
+	public void doAchange(int position){
+		if(lastPosition != position){
+			
+		}
+		imageIds[position] = R.drawable.stevie_ray_vaughan;
+	}
+
+}

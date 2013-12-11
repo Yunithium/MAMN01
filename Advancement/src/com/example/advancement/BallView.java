@@ -9,8 +9,8 @@ import android.view.View;
 
 public class BallView extends View {
 
-    public float x;
-    public float y;
+    public static float x;
+    public static float y;
     public final int radius;
     private final Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private Bitmap bm;

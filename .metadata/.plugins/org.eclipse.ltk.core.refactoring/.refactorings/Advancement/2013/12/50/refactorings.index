@@ -21,3 +21,5 @@
 1386629817600	Rename field 'rightButton'
 1386677684944	Rename resource 'playtransparent.png'
 1386683384744	Rename resource 'forwardbutton.png'
+1386766760177	Delete element
+1386771938273	Rename field 'lastElement'

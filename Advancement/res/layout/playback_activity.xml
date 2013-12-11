@@ -27,12 +27,13 @@
             android:layout_height="50sp"
             android:background="@drawable/ic_launcher"/>
         
-        <ImageView 
+        <ImageButton
             android:contentDescription="@string/description"
             android:layout_gravity="center"
             android:layout_width="50sp"
             android:layout_height="50sp"
-            android:background="@drawable/ic_launcher"/>
+            android:background="@drawable/ic_launcher"
+            android:onClick="enableBall" />
         
         <ImageView 
             android:contentDescription="@string/description"
@@ -135,6 +136,7 @@
     </FrameLayout>
     
     <!-- Add buttons here e e e e -->
+    
     <ImageButton
         android:contentDescription="@string/description"
 		android:id="@+id/previous_button"
@@ -145,7 +147,7 @@
 		android:layout_marginLeft="15dp"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:onClick="testTest" />
+		android:onClick="previousTrack" />
     
     <ImageButton
         android:contentDescription="@string/description"
@@ -157,7 +159,7 @@
 		android:layout_marginRight="15dp"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:onClick="testTest" />
+		android:onClick="nextTrack" />
     
     <ImageButton
         android:contentDescription="@string/description"
@@ -168,7 +170,7 @@
 		android:layout_marginBottom="15dp"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:onClick="testTest" />
+		android:onClick="playPause" />
     
 	<Button
 	    android:id="@+id/play_pause"

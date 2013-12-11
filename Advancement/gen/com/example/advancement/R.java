@@ -52,7 +52,7 @@ or to a theme attribute in the form "<code>?[<i>package</i>:][<i>type</i>:]<i>na
         public static final int enterAnimation=0x7f090012;
         public static final int exitAnimation=0x7f090013;
         public static final int flipper_of_views=0x7f090008;
-        public static final int fullscreen_content=0x7f090011;
+        public static final int gridview=0x7f090011;
         public static final int image_view_1=0x7f090009;
         public static final int image_view_2=0x7f09000a;
         public static final int next=0x7f09000b;

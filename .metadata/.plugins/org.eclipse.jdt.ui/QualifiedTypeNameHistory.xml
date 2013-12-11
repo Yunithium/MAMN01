@@ -1,22 +1,9 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <qualifiedTypeNameHistroy>
-<fullyQualifiedTypeName name="com.example.transition.R.anim"/>
-<fullyQualifiedTypeName name="android.view.animation.Animation"/>
-<fullyQualifiedTypeName name="android.view.animation.AnimationUtils"/>
-<fullyQualifiedTypeName name="android.widget.ImageView"/>
-<fullyQualifiedTypeName name="android.graphics.drawable.Drawable"/>
-<fullyQualifiedTypeName name="com.example.transition.R.drawable"/>
-<fullyQualifiedTypeName name="android.provider.MediaStore.Images"/>
-<fullyQualifiedTypeName name="android.provider.MediaStore.Images.Thumbnails"/>
-<fullyQualifiedTypeName name="com.example.transition.R.id"/>
-<fullyQualifiedTypeName name="android.app.Application"/>
-<fullyQualifiedTypeName name="android.view.Window"/>
 <fullyQualifiedTypeName name="java.util.TimerTask"/>
 <fullyQualifiedTypeName name="android.os.Handler"/>
-<fullyQualifiedTypeName name="android.os.SystemClock"/>
 <fullyQualifiedTypeName name="android.app.Activity"/>
 <fullyQualifiedTypeName name="android.os.Message"/>
-<fullyQualifiedTypeName name="android.view.View"/>
 <fullyQualifiedTypeName name="android.widget.FrameLayout"/>
 <fullyQualifiedTypeName name="android.view.KeyEvent"/>
 <fullyQualifiedTypeName name="android.util.Log"/>
@@ -57,7 +44,20 @@
 <fullyQualifiedTypeName name="android.util.Pair"/>
 <fullyQualifiedTypeName name="java.util.HashMap"/>
 <fullyQualifiedTypeName name="com.example.advancement.R.raw"/>
-<fullyQualifiedTypeName name="com.example.advancement.R.drawable"/>
 <fullyQualifiedTypeName name="android.widget.ScrollView"/>
 <fullyQualifiedTypeName name="android.widget.HorizontalScrollView"/>
+<fullyQualifiedTypeName name="java.util.Timer"/>
+<fullyQualifiedTypeName name="android.view.View"/>
+<fullyQualifiedTypeName name="android.graphics.Bitmap"/>
+<fullyQualifiedTypeName name="android.graphics.BitmapFactory"/>
+<fullyQualifiedTypeName name="android.os.SystemClock"/>
+<fullyQualifiedTypeName name="android.widget.ImageButton"/>
+<fullyQualifiedTypeName name="android.view.View.OnTouchListener"/>
+<fullyQualifiedTypeName name="android.view.MotionEvent"/>
+<fullyQualifiedTypeName name="android.content.Context"/>
+<fullyQualifiedTypeName name="android.widget.ImageView"/>
+<fullyQualifiedTypeName name="android.widget.BaseAdapter"/>
+<fullyQualifiedTypeName name="android.widget.GridView"/>
+<fullyQualifiedTypeName name="com.example.advancement.R.id"/>
+<fullyQualifiedTypeName name="com.example.advancement.R.drawable"/>
 </qualifiedTypeNameHistroy>
