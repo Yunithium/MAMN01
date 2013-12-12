@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Rolling Stone</string>
+    <string name="title_activity_playback">PlaybackActivity</string>
+    <string name="playback">PLAYBACK MENU</string>
+    <string name="playlist">PLAYLIST MENU</string>
+    <string name="description">Description</string>
+
+</resources>

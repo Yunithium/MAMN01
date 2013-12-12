@@ -1,0 +1,89 @@
+package com.example.advancement;
+
+import android.content.Context;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewGroup.LayoutParams;
+import android.widget.BaseAdapter;
+import android.widget.GridView;
+import android.widget.ImageView;
+
+public class GridAdapter extends BaseAdapter {
+	private Context context;
+	public Integer[] ufImageIds = {
+            R.drawable.stevie_uf,
+            R.drawable.taylor_swift_uf,
+            R.drawable.bar_kays_uf,
+            R.drawable.the_tough_alliance_uf,
+            R.drawable.the_strokes_uf,
+            R.drawable.justice_uf,
+            R.drawable.gorillaz_uf,
+            R.drawable.fleetwood_mac_uf,
+            R.drawable.arcadefire_uf,
+            R.drawable.daftpunk_uf
+	};
+	public Integer[] fImageIds = {
+            R.drawable.stevie_f,
+            R.drawable.taylor_swift_f,
+            R.drawable.bar_kays_f,
+            R.drawable.the_tough_alliance_f,
+            R.drawable.the_strokes_f,
+            R.drawable.justice_f,
+            R.drawable.gorillaz_f,
+            R.drawable.fleetwood_mac_f,
+            R.drawable.arcadefire_f,
+            R.drawable.daftpunk_f
+	};
+	public Integer[] currentImageIds = {
+			R.drawable.stevie_uf,
+            R.drawable.taylor_swift_uf,
+            R.drawable.bar_kays_uf,
+            R.drawable.the_tough_alliance_uf,
+            R.drawable.the_strokes_uf,
+            R.drawable.justice_uf,
+            R.drawable.gorillaz_uf,
+            R.drawable.fleetwood_mac_uf,
+            R.drawable.arcadefire_uf,
+            R.drawable.daftpunk_uf
+	};
+	
+	private Integer focusedID = R.drawable.bar_kays;
+	
+	public GridAdapter(Context c) {
+		context = c;
+	}
+	
+	public int getCount() {
+		return ufImageIds.length;
+	}
+	
+	public Object getItem(int position) {
+		return ufImageIds[position];
+	}
+	
+	public long getItemId(int position) {
+		return 0;
+	}
+	
+	@Override
+	public View getView(int position, View view, ViewGroup parent) {
+		ImageView iview;
+		if (view == null) {
+			iview = new ImageView(context);
+			iview.setLayoutParams(new GridView.LayoutParams(LayoutParams.MATCH_PARENT , 112));
+			//iview.setPadding(5, 5, 5, 5);
+		} else {
+			iview = (ImageView) view;	
+		}
+		iview.setImageResource(currentImageIds[position]);
+		return iview;
+	}
+	
+	public void doAchange(int position){
+		for(int i=0; i<ufImageIds.length ; i++){
+			ufImageIds[i] = currentImageIds[i];
+		}
+		ufImageIds[position] = R.drawable.stevie_ray_vaughan;
+	}
+
+}

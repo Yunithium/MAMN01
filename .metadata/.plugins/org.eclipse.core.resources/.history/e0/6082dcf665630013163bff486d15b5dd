@@ -1,0 +1,472 @@
+package com.example.advancement;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Timer;
+import com.example.advancement.R;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.SystemClock;
+import android.os.Vibrator;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.View.OnTouchListener;
+import android.view.Window;
+import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.HorizontalScrollView;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
+import android.widget.ViewFlipper;
+
+public class PlaybackActivity extends Activity implements CustomActivity, OnCompletionListener {
+	private FrameLayout mainView;
+	private RollingStone rollingStone;
+	private Timer timer;
+	private RedrawTask redrawTask;
+	private short refreshTime = 10;
+	private boolean asleep;
+	private boolean awoken;
+	private boolean changingActivity;
+	private int scrollMoveCounter;
+	private int scrollMode;
+
+	private HorizontalScrollView sv;
+	private ViewFlipper viewFlipper;
+	private ImageView imageView;
+	private int currentImage;
+	private int currentImageView;
+	private int[] imageViews;
+	private SeekBar timeLine;
+	
+	private static final String[] EXTENSIONS = { ".mp3", ".mid", ".wav", ".ogg", ".mp4" };
+	private ArrayList<String> trackNames;
+	private ArrayList<String> trackArtworks;
+	private File path;
+	private File path2;
+	private Music track;
+	private boolean isTuning; //is user currently jamming out, if so automatically start playing the next track...?
+	private int currentTrack;
+	private long delayTime;
+	
+	private ImageButton playButton;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.playback_activity);
+		getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+		asleep = true;
+		awoken = true;
+		changingActivity = false;
+		scrollMoveCounter = 0;
+		scrollMode = 1;
+		playButton = (ImageButton) findViewById(R.id.play_pause_button);
+		
+		((android.widget.TextView) findViewById(R.id.track_info)).setText("Stevie Ray Vaughan - Mary Had A Little Lamb");
+		
+		sv = (HorizontalScrollView)findViewById(R.id.scroll_view);
+		sv.setFadingEdgeLength(100);
+		
+		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place);
+		rollingStone = RollingStone.getInstance();
+		rollingStone.setTimer(new Timer());
+		timer = rollingStone.getTimer();
+		
+		timeLine = (SeekBar) findViewById(R.id.seekbartimeline);
+		
+		setUpViewFlipper();
+		initializeMedia();
+
+		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
+				@Override
+				public void onSensorChanged(SensorEvent event) {
+					if((SystemClock.uptimeMillis() - delayTime) > 500){
+						event.values[0] = -event.values[0];
+						if(!asleep){
+							redrawTask.updateSpeed(event.values, awoken);
+							
+							if(awoken){
+								redrawTask.unPause();
+								awoken = false;
+							}
+							
+							int mediaDuration = track.getDuration();
+							int mediaPosition = track.getCurrentPosition();
+							timeLine.setMax(mediaDuration);
+							timeLine.setProgress(mediaPosition);
+						}
+					}
+				}
+				@Override
+				public void onAccuracyChanged(Sensor sensor, int accuracy) { } // ignore this event
+		}, ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_GAME);
+		
+		
+		// ReMove ball on touch
+		mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
+			public boolean onTouch(android.view.View v,
+					android.view.MotionEvent e) {
+				disableBall();
+				return true;
+			}
+		});
+	}
+	
+	/* Removes the ball from the field. */
+	public void disableBall(){
+		asleep = true;
+		redrawTask.pause();
+		//((ImageButton) findViewById(R.id.tounge_ball)).setBackgroundResource(R.drawable.ic_launcher_2);
+		((ImageButton) findViewById(R.id.tounge_ball)).setImageDrawable(getResources().getDrawable(R.drawable.ic_launcher_2));
+	}
+	
+	/* Enables the ball again. It will start from the center of the display and stay there for a short duration. */
+	public void enableBall(View view){
+		redrawTask.changeContext(this, mainView);
+    	delayTime = SystemClock.uptimeMillis();
+    	
+    	if(asleep){
+			asleep = false;
+			awoken = true;
+		}
+    	((ImageButton) findViewById(R.id.tounge_ball)).setImageDrawable(getResources().getDrawable(R.drawable.ic_launcher));
+    }
+
+	public void changeActivity() {
+		Button button = (android.widget.Button) findViewById(R.id.playlist);
+		button.setBackgroundColor(Color.GREEN);
+		
+		changingActivity = true;
+		asleep = true;
+		
+		Intent intent = new Intent(this, PlaylistActivity.class);
+		startActivity(intent);
+		overridePendingTransition(R.anim.push_left_in, R.anim.push_left_out);
+	}
+	
+	private void initializeMedia(){
+    	trackNames = new ArrayList<String>();
+    	trackArtworks = new ArrayList<String>();
+    	currentTrack = 0;
+    	isTuning = false;
+    	
+    	addTracks(getTracks());
+    	loadTrack();
+	}
+	
+	@SuppressLint("NewApi")
+	private String[] getTracks(){
+		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) || Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY)){
+    		path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+    		path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+    		
+    		path = new File(path.toString() + "/" + "Ringtones");
+			String[] temp = path.list();
+			
+			return temp;
+		} else{
+			//Toast.makeText(getBaseContext(), "SD Card is either mounted elsewhere or is unusable", Toast.LENGTH_LONG).show();
+		}
+    	return null;
+    }
+	
+	private void addTracks(String[] temp){
+    	if(temp != null){
+			for(int i = 0; i < temp.length; i++){
+				if(trackChecker(temp[i])){
+					trackNames.add(temp[i]);
+					trackArtworks.add(temp[i].substring(0, temp[i].length()-4));
+				}
+			}
+			//Toast.makeText(getBaseContext(), "Loaded " + Integer.toString(trackNames.size()) + " Tracks", Toast.LENGTH_SHORT).show();
+		}
+    }
+	
+	private boolean trackChecker(String trackToTest){
+    	for(int j = 0; j < EXTENSIONS.length; j++){
+			if(trackToTest.contains(EXTENSIONS[j])){
+				return true;
+			}
+		}
+    	return false;
+    }
+	
+	private void loadTrack(){
+    	if(track != null){
+    		track.dispose();
+    	}
+    	if(trackNames.size() > 0){
+    		track = loadMusic();
+    	}
+    }
+	
+	private Music loadMusic(){
+		try{
+			FileInputStream fis = new FileInputStream(new File(path, trackNames.get(currentTrack)));
+			FileDescriptor fileDescriptor = fis.getFD();
+			return new Music(fileDescriptor);
+		} catch(IOException e){
+			e.printStackTrace();
+			//Toast.makeText(getBaseContext(), "Error Loading " + trackNames.get(currentTrack), Toast.LENGTH_LONG).show();
+		}
+		return null;
+    }
+	
+	private void playTrack(){
+    	if(isTuning && track != null){
+			track.play();
+			//Toast.makeText(getBaseContext(), "Playing " + trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4), Toast.LENGTH_SHORT).show();
+		}
+    	track.setOnCompletionListener(this);
+    }
+
+	public void previousTrack(View view) {
+		currentTrack--;
+		if(currentTrack < 0)
+			currentTrack = trackNames.size()-2;
+			//currentTrack = trackNames.size()-1;
+		
+		loadTrack();
+		playTrack();
+		
+		if(view == null){
+			Button button = (android.widget.Button) findViewById(R.id.previous);
+			button.setBackgroundColor(Color.GREEN);
+		}
+
+		viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_right_in));
+		viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_right_out));
+		
+		currentImageView = (currentImageView + 1) % imageViews.length;
+
+		imageView = (ImageView) findViewById(imageViews[currentImageView]);
+		imageView.setImageResource(rollingStone.getTrackinfo(trackNames.get(currentTrack)));
+		viewFlipper.showPrevious();
+		
+		((android.widget.TextView) findViewById(R.id.track_info)).setText(trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4));
+		
+		sv.scrollTo(0, 0);
+		scrollMode = 1;
+		scrollMoveCounter = 0;
+	}
+
+	public void nextTrack(View view) {
+		currentTrack++;
+		//if(currentTrack > trackNames.size()-1) // Because of hej
+		if(currentTrack > trackNames.size()-2)
+			currentTrack = 0;
+		
+		loadTrack();
+		playTrack();
+		
+		if(view == null){
+			Button button = (android.widget.Button) findViewById(R.id.next);
+			button.setBackgroundColor(Color.GREEN);
+		}
+
+		viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_in));
+		viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_out));
+
+		currentImageView = (currentImageView + 1) % imageViews.length;
+
+		imageView = (ImageView) findViewById(imageViews[currentImageView]);
+		imageView.setImageResource(rollingStone.getTrackinfo(trackNames.get(currentTrack)));
+		viewFlipper.showNext();
+		
+		((android.widget.TextView) findViewById(R.id.track_info)).setText(trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4));
+		
+		sv.scrollTo(0, 0);
+		scrollMode = 1;
+		scrollMoveCounter = 0;
+	}
+
+	public void playPause(View view) {
+		if(view == null){
+			Button button = (android.widget.Button) findViewById(R.id.play_pause);
+			button.setBackgroundColor(Color.GREEN);
+		}
+		
+		synchronized(this){
+			if(isTuning){
+				isTuning = false;
+				track.pause();
+				playButton.setImageResource(R.drawable.playbutton);
+			} else{
+				isTuning = true;
+				playTrack();
+				playButton.setImageResource(R.drawable.pausebutton);
+			}	
+		}
+	}
+
+	public void activateButton(int buttonID) {
+		Button button = (android.widget.Button) findViewById(buttonID);
+		button.setBackgroundColor(Color.WHITE);
+	}
+	
+	private void setUpViewFlipper() {
+		currentImageView = 0;
+
+		imageViews = new int[2];
+		imageViews[0] = R.id.image_view_1;
+		imageViews[1] = R.id.image_view_2;
+
+		viewFlipper = (ViewFlipper) findViewById(R.id.flipper_of_views);
+
+		imageView = (ImageView) findViewById(imageViews[currentImage]);
+		imageView.setImageResource(rollingStone.getTrackinfo("Stevie Ray Vaughan - Mary Had A Little Lamb.mp3"));
+	}
+
+	public Vibrator getVibrator() {
+		return (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+	}
+	
+	public void onResume() {
+		if(asleep && !changingActivity){
+			rollingStone.setRedrawTask(new RedrawTask(refreshTime, getWindowManager().getDefaultDisplay()));
+			timer.schedule(rollingStone.getRedrawTask(), 100, refreshTime);
+		}
+		redrawTask = rollingStone.getRedrawTask();
+		redrawTask.changeContext(this, mainView);
+		redrawTask.resetPos();
+		
+		if(asleep && !changingActivity)
+			awoken = true;
+		
+		if(changingActivity && rollingStone.playListChanged){
+			delayTime = SystemClock.uptimeMillis();
+			currentTrack = rollingStone.currentSong;
+			loadTrack();
+			isTuning = true;
+			track.play();
+			
+			viewFlipper.setInAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_in));
+			viewFlipper.setOutAnimation(AnimationUtils.loadAnimation(this, R.anim.push_left_out));
+
+			currentImageView = (currentImageView + 1) % imageViews.length;
+
+			imageView = (ImageView) findViewById(imageViews[currentImageView]);
+			imageView.setImageResource(rollingStone.getTrackinfo(trackNames.get(currentTrack)));
+			viewFlipper.showNext();
+			
+			((android.widget.TextView) findViewById(R.id.track_info)).setText(trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4));
+			
+			sv.scrollTo(0, 0);
+			scrollMode = 1;
+			scrollMoveCounter = 0;	
+			
+			
+			playButton.setImageResource(R.drawable.pausebutton);
+			rollingStone.playListChanged = false;
+		}
+		
+		redrawTask.unPause();
+		changingActivity = false;
+		
+		delayTime = SystemClock.uptimeMillis();
+		asleep = false;
+		super.onResume();
+	}
+	
+	public void onPause() {
+		//redrawTask.resetPos();
+		if(changingActivity){
+			
+		}else{
+			redrawTask.pause();
+			asleep = true;
+			redrawTask = null;
+		}
+		
+		super.onPause();
+	}
+	public void onDestroy(){
+		makeToast("Quitting application");
+		if (track != null) {
+			if (track.isPlaying()) {
+				track.pause();
+				isTuning = false;
+			}
+			if (isFinishing()) {
+				track.dispose();
+				finish();
+			}
+		} else {
+			if (isFinishing()) {
+				finish();
+			}
+		}
+		super.onDestroy();
+	}
+
+	public void makeToast(String s) {
+		Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+	}
+
+	@Override
+	public void onCompletion(MediaPlayer arg0) {
+		nextTrack(null);
+		//makeToast("Music finished playing");
+	}
+	
+	public void scrollAlittle(){
+		if(scrollMode == 1 && ((android.widget.TextView) findViewById(R.id.track_info)).getRight()-sv.getWidth()==sv.getScrollX()){
+			scrollMode = 2;
+			scrollMoveCounter = 0;
+		} else if(scrollMode == 2 && sv.getScrollX()==0){
+			scrollMode = 1;
+			scrollMoveCounter = 0;
+		}
+		
+		if(scrollMoveCounter < 40){
+			scrollMoveCounter++;
+		}else{
+			if(scrollMode == 1) sv.scrollBy(1, 0);
+			if(scrollMode == 2) sv.scrollBy(-7, 0);
+		}
+	}
+
+	
+	public void minimizeApplication(){
+		Button button = (android.widget.Button) findViewById(R.id.quit);
+		button.setBackgroundColor(Color.GREEN);
+		
+		asleep = true;
+		redrawTask.resetPos();
+		redrawTask.pause();
+		
+		Intent startMain = new Intent(Intent.ACTION_MAIN);
+		startMain.addCategory(Intent.CATEGORY_HOME);
+		startMain.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		startActivity(startMain);
+	}
+	
+	public void testTest(View view){
+		makeToast("Play");
+	}
+}

@@ -23,3 +23,6 @@
 1386683384744	Rename resource 'forwardbutton.png'
 1386766760177	Delete element
 1386771938273	Rename field 'lastElement'
+1386851849557	Rename resource 'arcadefire_list_uf.png'
+1386853518179	Rename field 'imageIds'
+1386853589629	Rename field 'originalImageIds'

@@ -1,0 +1,256 @@
+package com.example.advancement;
+
+import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Timer;
+
+import com.example.advancement.R;
+
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.content.Context;
+import android.graphics.Color;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Vibrator;
+import android.util.DisplayMetrics;
+import android.view.Display;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.GridView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class PlaylistActivity extends Activity implements CustomActivity{
+	private FrameLayout mainView;
+	private RollingStone rollingStone;
+	private RedrawTask redrawTask;
+	//private Timer timer;
+	private boolean running = false;
+	private GridAdapter gridAdapter;
+	private GridView gridView;
+	private int lastPosition;
+	private int displaySize;
+	private boolean isTuning;
+	
+	private static final String[] EXTENSIONS = { ".mp3", ".mid", ".wav", ".ogg", ".mp4" };
+	private ArrayList<String> trackNames;
+	private ArrayList<String> trackArtworks;
+	private File path;
+	private File path2;
+	private Music track;
+	private int currentTrack;
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.playlist_activity);
+		
+		Display display = getWindowManager().getDefaultDisplay();
+		DisplayMetrics outMetrics = new DisplayMetrics();
+		display.getMetrics(outMetrics);
+		displaySize = outMetrics.heightPixels;
+		//setupActionBar();
+	      
+	    gridView = (GridView) findViewById(R.id.gridview);
+	    gridAdapter = new GridAdapter(this);
+	    gridView.setAdapter(gridAdapter);
+	    lastPosition = GridView.INVALID_POSITION;
+		
+		rollingStone = RollingStone.getInstance();
+		//redrawTask = rollingStone.getRedrawTask();
+		//timer = rollingStone.getTimer();
+		mainView = (android.widget.FrameLayout) findViewById(R.id.painting_place_playback);
+		
+		intializeMedmia();
+		
+		
+		((SensorManager) getSystemService(Context.SENSOR_SERVICE)).registerListener(new SensorEventListener() {
+			@Override
+			public void onSensorChanged(SensorEvent event) {
+				event.values[0] = -event.values[0];
+					redrawTask.updateSpeed(event.values, false);
+				}
+			@Override
+			public void onAccuracyChanged(Sensor sensor, int accuracy) { } // ignore this event
+	}, ((SensorManager) getSystemService(Context.SENSOR_SERVICE)).getSensorList(Sensor.TYPE_ACCELEROMETER).get(0), SensorManager.SENSOR_DELAY_GAME);
+	
+		mainView.setOnTouchListener(new android.view.View.OnTouchListener() {
+			public boolean onTouch(android.view.View v,
+					android.view.MotionEvent e) {
+				return true;
+			}
+		});
+	//gridView.setTranscriptMode(GridView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
+	//gridView.scrollTo(0, 0);
+	}
+	
+	public void changeActivity(){
+		finish();
+		overridePendingTransition(R.anim.push_right_in, R.anim.push_right_out);
+	}
+	
+	public void activateButton(int buttonID) {
+		Button button = (android.widget.Button) findViewById(buttonID);
+		button.setBackgroundColor(Color.WHITE);
+	}
+	
+	public void deActivateButton(int buttonID) {
+		Button button = (android.widget.Button) findViewById(buttonID);
+		button.setBackgroundColor(Color.GREEN);
+	}
+
+	public void changeImage(float x, float y){
+		y = y + gridView.getScrollY();
+		int position = gridView.pointToPosition((int) x, (int) y);
+		
+		if(position != lastPosition && position != gridView.INVALID_POSITION){
+			gridAdapter.doAchange(position);
+			gridAdapter.notifyDataSetChanged();
+		}
+	}
+	
+	public void scrollGridUp(){
+	if(gridView.getScrollY()==0){
+			
+		} else{
+			gridView.scrollBy(0, -2);
+		}
+	}
+	
+	public void scrollGrid(){
+		
+		if(gridView.getScrollY() <= gridView.getBottom() - displaySize + 100 + 100){
+			gridView.post(new Runnable() {
+			    @SuppressLint("NewApi")
+				@Override
+			    public void run() {
+			        gridView.scrollBy(0, 2);
+			    }
+			});
+		}
+		
+		/*
+		gridAdapter.notifyDataSetChanged();
+		if(gridView.getScrollY() <= gridView.getBottom() - displaySize + 100)
+			gridView.scrollBy(0, 2);
+		*/
+	}
+	
+	
+	private void initializeMedia(){
+    	trackNames = new ArrayList<String>();
+    	trackArtworks = new ArrayList<String>();
+    	currentTrack = 0;
+    	isTuning = false;
+    	
+    	addTracks(getTracks());
+    	loadTrack();
+	}
+	
+	@SuppressLint("NewApi")
+	private String[] getTracks(){
+		if(Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) || Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY)){
+    		path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC);
+    		path2 = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
+    		
+    		path = new File(path.toString() + "/" + "Ringtones");
+			String[] temp = path.list();
+			
+			return temp;
+		} else{
+			//Toast.makeText(getBaseContext(), "SD Card is either mounted elsewhere or is unusable", Toast.LENGTH_LONG).show();
+		}
+    	return null;
+    }
+	
+	private void addTracks(String[] temp){
+    	if(temp != null){
+			for(int i = 0; i < temp.length; i++){
+				if(trackChecker(temp[i])){
+					trackNames.add(temp[i]);
+					trackArtworks.add(temp[i].substring(0, temp[i].length()-4));
+				}
+			}
+			//Toast.makeText(getBaseContext(), "Loaded " + Integer.toString(trackNames.size()) + " Tracks", Toast.LENGTH_SHORT).show();
+		}
+    }
+	
+	private boolean trackChecker(String trackToTest){
+    	for(int j = 0; j < EXTENSIONS.length; j++){
+			if(trackToTest.contains(EXTENSIONS[j])){
+				return true;
+			}
+		}
+    	return false;
+    }
+	
+	private void loadTrack(){
+    	if(track != null){
+    		track.dispose();
+    	}
+    	if(trackNames.size() > 0){
+    		track = loadMusic();
+    	}
+    }
+	
+	private Music loadMusic(){
+		try{
+			FileInputStream fis = new FileInputStream(new File(path, trackNames.get(currentTrack)));
+			FileDescriptor fileDescriptor = fis.getFD();
+			return new Music(fileDescriptor);
+		} catch(IOException e){
+			e.printStackTrace();
+			//Toast.makeText(getBaseContext(), "Error Loading " + trackNames.get(currentTrack), Toast.LENGTH_LONG).show();
+		}
+		return null;
+    }
+	
+	private void playTrack(){
+    	if(isTuning && track != null){
+			track.play();
+			//Toast.makeText(getBaseContext(), "Playing " + trackNames.get(currentTrack).substring(0, trackNames.get(currentTrack).length()-4), Toast.LENGTH_SHORT).show();
+		}
+    	track.setOnCompletionListener(this);
+    }
+	
+	public Vibrator getVibrator() {
+		return (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+	}
+	
+	@Override
+	public void onResume() {
+		redrawTask = rollingStone.getRedrawTask();
+		redrawTask.changeContext(this, mainView);
+		redrawTask.paused = false;
+		
+		super.onResume();
+	}
+	
+	@Override
+	public void onPause() {
+		redrawTask.pause();
+		super.onPause();
+	}
+	
+	public void makeText(){
+		TextView tv = (TextView) findViewById(R.id.temp);
+		tv.setText("ScrollY: " + gridView.getScrollY());
+		tv.setText(tv.getText() + ", sizeY: " + displaySize);
+		tv.setText(tv.getText() + ", Bottom: " + gridView.getBottom());
+	}
+	
+	public void makeToast(String s) {
+		Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
+	}
+}
